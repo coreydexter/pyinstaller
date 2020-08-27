@@ -811,7 +811,7 @@ class MERGE(object):
                     dep_path = self._get_relative_path(path, self._dependencies[tpl[1]])
                     logger.debug("Referencing %s to be a dependecy for %s, located in %s" % (tpl[1], path, dep_path))
                     analysis.dependencies.append(
-                        (":".join((dep_path, os.path.basename(tpl[1]))),
+                        (":".join((dep_path, tpl[0])),
                          tpl[1],
                          "DEPENDENCY"))
                     toc[i] = (None, None, None)

@@ -10,9 +10,4 @@
 #-----------------------------------------------------------------------------
 
 
-# import a very simple and rarely used pure-python lib ...
-import getopt
-# ... and a module importing a shared lib
-import ssl
-
 print('Hello World!')

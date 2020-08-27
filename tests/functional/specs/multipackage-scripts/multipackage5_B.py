@@ -12,7 +12,9 @@
 
 # import a very simple and rarely used pure-python lib ...
 import getopt
-# ... and a module importing a shared lib
+# ... and a module which requires .dll/.so files
 import ssl
+# A package that has package_data relative to it's root
+import tkinter
 
 print('Hello World!')

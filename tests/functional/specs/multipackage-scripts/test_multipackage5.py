@@ -10,9 +10,15 @@
 #-----------------------------------------------------------------------------
 
 
-# import a very simple and rarely used pure-python lib ...
+# This script will use shared dependencies from multipackage5_B and multipackage5_C
+
+
+# import a very simple and rarely used pure-python lib ... (shared from multipackage5_B)
 import getopt
-# ... and a module importing a shared lib
+# import a module that requires .dll/.so files (shared from multipackage5_B)
 import ssl
+# import a module that which has package data relative to it's root (shared from multipackage5_C)
+import tkinter
+
 
 print('Hello World!')

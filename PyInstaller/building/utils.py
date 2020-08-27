@@ -89,6 +89,27 @@ def _check_guts_toc(attr, old, toc, last_build, pyc=0):
 
 
 #---
+def _ensure_extension_suffix(internal_name, filename):
+    """
+    Ensure the extension's filename suffix exists on the internal name
+    """
+    # Change the dotted name into a relative path. This places C
+    # extensions in the Python-standard location.
+    internal_name = internal_name.replace('.', os.sep)
+    # In some rare cases extension might already contain a suffix.
+    # Skip it in this case.
+    if os.path.splitext(internal_name)[1] not in EXTENSION_SUFFIXES:
+        # Determine the base name of the file.
+        base_name = os.path.basename(internal_name)
+        assert '.' not in base_name
+        # Use this file's existing extension. For extensions such as
+        # ``libzmq.cp36-win_amd64.pyd``, we can't use
+        # ``os.path.splitext``, which would give only the ```.pyd`` part
+        # of the extension.
+        internal_name = internal_name + os.path.basename(filename)[len(base_name):]
+
+    return internal_name
+
 
 def add_suffix_to_extensions(toc):
     """
@@ -98,28 +119,22 @@ def add_suffix_to_extensions(toc):
     from .datastruct import TOC
     new_toc = TOC()
     for inm, fnm, typ in toc:
-        if typ == 'EXTENSION':
-            # Change the dotted name into a relative path. This places C
-            # extensions in the Python-standard location.
-            inm = inm.replace('.', os.sep)
-            # In some rare cases extension might already contain a suffix.
-            # Skip it in this case.
-            if os.path.splitext(inm)[1] not in EXTENSION_SUFFIXES:
-                # Determine the base name of the file.
-                base_name = os.path.basename(inm)
-                assert '.' not in base_name
-                # Use this file's existing extension. For extensions such as
-                # ``libzmq.cp36-win_amd64.pyd``, we can't use
-                # ``os.path.splitext``, which would give only the ```.pyd`` part
-                # of the extension.
-                inm = inm + os.path.basename(fnm)[len(base_name):]
+        is_dependency_with_extension_filetype = (
+            typ == 'DEPENDENCY' and os.path.splitext(fnm)[1] in EXTENSION_SUFFIXES and False
+        )
 
+        if typ == 'EXTENSION' or is_dependency_with_extension_filetype:
+            inm = _ensure_extension_suffix(inm, fnm)
         elif typ == 'DEPENDENCY':
-            # Use the suffix from the filename.
-            # TODO Verify what extensions are by DEPENDENCIES.
-            binext = os.path.splitext(fnm)[1]
-            if not os.path.splitext(inm)[1] == binext:
-                inm = inm + binext
+            # If we have a dependency, we want to check see if the original file is an extension file type
+            # If it is, we need to ensure that the suffix is added on the `inm` so that it can be found.
+            if os.path.splitext(fnm)[1] in EXTENSION_SUFFIXES:
+                # For dependencys the `inm` is of the form {path_to_shared_dependency}:{internal_name},
+                # we want to update the internal_name portion of the `inm`.
+                path_to_dep, internal_name = inm.split(':')
+                internal_name = _ensure_extension_suffix(internal_name, fnm)
+                inm = "{}:{}".format(path_to_dep, internal_name)
+
         new_toc.append((inm, fnm, typ))
     return new_toc
 
